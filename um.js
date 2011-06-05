@@ -96,7 +96,10 @@ function makeMachine() {
 		    
 		case 8:  /* Allocation */
 		    var new_array_buf = new Uint32Array(new ArrayBuffer(registers[C]*4));
-		    var new_array_num = arrays.length;
+		    var new_array_num = arrays.indexOf(null);
+		    if (new_array_num == -1) {
+			new_array_num = arrays.length;
+		    }
 		    arrays[new_array_num] = new_array_buf;
 		    registers[B] = new_array_num;
 		    break;
