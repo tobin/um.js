@@ -120,9 +120,8 @@ function makeMachine() {
 		case 12: /* Load Program. */		
 		    var src_array = registers[B];  // index of array to load into array[0]
 		    if (src_array != 0) {
-			arrays[0] = null;
+			arrays[0] =  new Uint32Array(arrays[src_array]);
 		    }
-		    arrays[0] =  new Uint32Array(arrays[src_array]);
 		    pc = registers[C];	
 		    break;
 		    
