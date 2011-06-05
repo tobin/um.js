@@ -24,17 +24,6 @@ function makeMachine() {
     var pc;                    // program counter, aka finger
     var self;
     
-
-    function duplicate_uint32array(src) {
-	// I will do this the dumb way since I know no other.
-	var buffer = new ArrayBuffer(src.byteLength);
-	var dest = new Uint32Array(buffer);
-	for (var ii=0; ii<src.length; ii++) {
-	    dest[ii] = src[ii]; // cry a little
-	}
-	return dest;
-    }
-
     function byteswap(x) {
 	return (x >>> 24) +
 	    ((x & 0x00ff0000) >>>  8) +
@@ -133,7 +122,7 @@ function makeMachine() {
 		    if (src_array != 0) {
 			arrays[0] = null;
 		    }
-		    arrays[0] =  duplicate_uint32array(arrays[src_array]);
+		    arrays[0] =  new Uint32Array(arrays[src_array]);
 		    pc = registers[C];	
 		    break;
 		    
