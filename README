@@ -2,3 +2,9 @@ Cult of the Bound Variable
 Universal Machine
 implemented in javascript
 http://www.boundvariable.org/task.shtml
+
+Note: for this to work from a local filesystem, you will need to start Chrome
+with the command line option "--allow-file-access-from-files" and put the 
+sandmark.umz and codex.um files into the same directory as um.{js,html} . The
+codex.um file is obtained by running the codex.umz file in a UM interpreter;
+probably not this one, since it is too slow.
