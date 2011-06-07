@@ -19,7 +19,7 @@ function writeln(str) {
 
 function makeMachine() {
     var localVariable = 123;
-    var registers = new Uint32Array(new ArrayBuffer(8*4));
+    var registers = new Uint32Array(8);
     var arrays = new Array();  // An array of Uint32Arrays
     var pc;                    // program counter, aka finger
     var self;
@@ -95,7 +95,7 @@ function makeMachine() {
 		    return;
 		    
 		case 8:  /* Allocation */
-		    var new_array_buf = new Uint32Array(new ArrayBuffer(registers[C]*4));
+		    var new_array_buf = new Uint32Array(registers[C]);
 		    var new_array_num = arrays.indexOf(null);
 		    if (new_array_num == -1) {
 			new_array_num = arrays.length;
