@@ -1,6 +1,17 @@
 my_div = document.getElementById("hello_area");
+cycle_counter_div = document.getElementById("cycle_counter");
 
 var is_new_line = 1;
+
+var keybuffer = new Array();
+
+function keypress(event) {
+    // see https://developer.mozilla.org/en/DOM/event
+    var i = event.charCode;
+    if (i==13)  i = 10; // translate CR to LF
+    keybuffer.push(i);
+}
+document.onkeypress = keypress;
 
 function putchar(c) {
     var s = "";
@@ -33,7 +44,8 @@ function makeMachine() {
     var arrays = new Array();  // An array of Uint32Arrays
     var pc;                    // program counter, aka finger
     var self;
-    
+    var cycle = 0;
+
     function byteswap(x) {
 	return (x >>> 24) +
 	    ((x & 0x00ff0000) >>>  8) +
@@ -53,6 +65,7 @@ function makeMachine() {
 	},
 
         execute: function() {
+	    cycle_counter_div.innerHTML = "[ " + cycle + " cycles ]";
 	    for (var iterations=10000; iterations>0; iterations--) {
 
 		/* Fetch */
@@ -125,9 +138,15 @@ function makeMachine() {
 		case 11: /* Input */
 		    /* if there is a keypress in the buffer, use it.  otherwise, back up
 		       the program counter by one then stop and wait for a callback. */
-		    //		int i = getchar();
-		    registers[C] = ~0;
-		    return; //FIXME
+		    if (keybuffer.length > 0) {
+			registers[C] = keybuffer.shift();
+			// do we want local echo? I'm not sure.
+			putchar(registers[C]);
+		    } else {
+			pc = pc - 1;
+			setTimeout(self.execute, 50); // FIXME
+			return; //FIXME
+		    }
 		    break;
 		    
 		case 12: /* Load Program. */		
@@ -148,8 +167,11 @@ function makeMachine() {
 		    writeln("Unknown opcode " + opcode + " in instruction " + instruction + " at pc = " + pc);
 		    return 1;
 		}
+		cycle ++; // putting this down here is a kludge so that it doesn't count while polling for keypresses
 	    }
+	    // set up a callback to ourself, to occur ASAP
 	    setTimeout(self.execute, 0);
+
 	}
     }
 }
