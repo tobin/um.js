@@ -53,7 +53,14 @@ function makeMachine() {
 	    ((x & 0x000000ff) * 0x01000000); // ugh!
     }
 
-
+    // superstitiously move these out of the main execution loop so that they 
+    // are not being allocated on every cycle.
+    var instruction = 0;
+    var A = 0;
+    var B = 0;
+    var C = 0;
+    var opcode = 0;
+    
     return {
 	load: function(program) {
 	    arrays[0] = program;
@@ -66,16 +73,16 @@ function makeMachine() {
 
         execute: function() {
 	    cycle_counter_div.innerHTML = "[ " + cycle + " cycles ]";
-	    for (var iterations=10000; iterations>0; iterations--) {
+	    for (var iterations=100000; iterations>0; iterations--) {
 
 		/* Fetch */
-		var instruction = byteswap(arrays[0][pc]);
+		instruction = byteswap(arrays[0][pc]);
 		
 		/* Decode the instruction */    
- 		var opcode = instruction >>> 28;
-		var C =  instruction        & 7;
-		var B = (instruction >>> 3) & 7; 
-		var A = (instruction >>> 6) & 7;
+ 		opcode = instruction >>> 28;
+		C =  instruction        & 7;
+		B = (instruction >>> 3) & 7; 
+		A = (instruction >>> 6) & 7;
 		
 		/* increment the program counter */
 		pc ++;
@@ -150,9 +157,8 @@ function makeMachine() {
 		    break;
 		    
 		case 12: /* Load Program. */		
-		    var src_array = registers[B];  // index of array to load into array[0]
-		    if (src_array != 0) {
-			arrays[0] =  new Uint32Array(arrays[src_array]);
+		    if (registers[B] != 0) {
+			arrays[0] =  new Uint32Array(arrays[registers[B]]);
 		    }
 		    pc = registers[C];	
 		    break;
