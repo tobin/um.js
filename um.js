@@ -27,6 +27,7 @@ function putchar(c) {
     case 10: 
 	s += "<br/>";
 	is_new_line = 1;
+	window.scroll(0, document.body.scrollHeight + 50); // FIXME
 	break;
     default:
 	s += String.fromCharCode(c);
