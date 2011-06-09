@@ -60,7 +60,66 @@ function makeMachine() {
     var B = 0;
     var C = 0;
     var opcode = 0;
+
+    function instr_condmove() {
+	if (registers[C]) registers[A] = registers[B];
+    }
+
+    function instr_arrayindex() {
+	registers[A] = byteswap(arrays[registers[B]][registers[C]]);
+    }
+
+    function instr_arrayamend() {
+	arrays[registers[A]][registers[B]]=byteswap(registers[C]);
+    }
+
+    function instr_add() {
+	registers[A] = registers[B] + registers[C];
+    }
+
+    function instr_mult() {
+	registers[A] = registers[B] * registers[C];
+    }
+
+    function instr_div() {
+	registers[A] = registers[B] / registers[C];
+    }
+
+    function instr_nand() {
+	registers[A] = ~(registers[B] & registers[C]);
+    }
+
+    function instr_alloc() {
+	var new_array_buf = new Uint32Array(registers[C]);
+	var new_array_num = arrays.indexOf(null);
+	if (new_array_num == -1) {
+	    new_array_num = arrays.length;
+	}
+	arrays[new_array_num] = new_array_buf;
+	registers[B] = new_array_num;
+    }
     
+    function instr_free() {
+	arrays[registers[C]] = null;
+    }
+
+    function instr_putchar() {
+	putchar(registers[C]);
+    }
+
+    function instr_jump() {
+	if (registers[B] != 0) {
+	    arrays[0] =  new Uint32Array(arrays[registers[B]]);
+	}
+	pc = registers[C];	
+    }
+
+
+    function instr_loadimmediate() {
+	A = (instruction >> 25) & 7;
+	registers[A] = instruction & 0x1FFFFFF;
+    }
+
     return {
 	load: function(program) {
 	    arrays[0] = program;
@@ -90,32 +149,31 @@ function makeMachine() {
 		switch (opcode) {
 		    
 		case 0: /* Conditional Move */
-		    if (registers[C])
-			registers[A] = registers[B];
+		    instr_condmove();
 		    break;
 		    
 		case 1: /* Array Index */
-		    registers[A] = byteswap(arrays[registers[B]][registers[C]]);
+		    instr_arrayindex();
 		    break;
 		    
 		case 2: /* Array Amendment */		
-		    arrays[registers[A]][registers[B]]=byteswap(registers[C]);
+		    instr_arrayamend();
 		    break;
 		    
 		case 3: /* Addition */
-		    registers[A] = registers[B] + registers[C];
+		    instr_add();
 		    break;
 		    
 		case 4: /* Multiplication */
-		    registers[A] = registers[B] * registers[C];
+		    instr_mult();
 		    break;
 		    
 		case 5: /* Division */
-		    registers[A] = registers[B] / registers[C];
+		    instr_div();
 		    break;
 		    
 		case 6: /* NAND */
-		    registers[A] = ~(registers[B] & registers[C]);
+		    instr_nand();
 		    break;
 		    
 		    /* Oher Operators */
@@ -125,21 +183,15 @@ function makeMachine() {
 		    return;
 		    
 		case 8:  /* Allocation */
-		    var new_array_buf = new Uint32Array(registers[C]);
-		    var new_array_num = arrays.indexOf(null);
-		    if (new_array_num == -1) {
-			new_array_num = arrays.length;
-		    }
-		    arrays[new_array_num] = new_array_buf;
-		    registers[B] = new_array_num;
+		    instr_alloc();
 		    break;
 		    
 		case 9: /* Abandonment */
-		    arrays[registers[C]] = null;
+		    instr_free();
 		    break;
 		    
 		case 10: /* Output */
-		    putchar(registers[C]);
+		    instr_putchar();
 		    break;
 		    
 		case 11: /* Input */
@@ -157,16 +209,12 @@ function makeMachine() {
 		    break;
 		    
 		case 12: /* Load Program. */		
-		    if (registers[B] != 0) {
-			arrays[0] =  new Uint32Array(arrays[registers[B]]);
-		    }
-		    pc = registers[C];	
+		    instr_jump();
 		    break;
 		    
 		    /* Special Operators. */
 		case 13:
-		    A = (instruction >> 25) & 7;
-		    registers[A] = instruction & 0x1FFFFFF;
+		    instr_loadimmediate();
 		    break;
 		    
 		default:  /* Unknown instruction */
