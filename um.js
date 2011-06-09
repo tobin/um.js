@@ -133,7 +133,7 @@ function makeMachine() {
 
         execute: function() {
 	    cycle_counter_div.innerHTML = "[ " + cycle + " cycles ]";
-	    for (var iterations=100000; iterations>0; iterations--) {
+	    for (var iterations=10000; iterations>0; iterations--) {
 
 		/* Fetch */
 		instruction = byteswap(arrays[0][pc]);
