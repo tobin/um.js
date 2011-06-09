@@ -93,14 +93,32 @@ function makeMachine() {
     }
 
     function instr_alloc() {
-	var new_array_buf = new Uint32Array(registers[C]);
-	var new_array_num = free_arrays.length > 0 ? free_arrays.pop() : arrays.length;
-	arrays[new_array_num] = new_array_buf;
+	var new_array_num = 0;
+
+	// check to see if there is an array index in the freed list
+	if (free_arrays.length > 0) {
+	    new_array_num = free_arrays.pop();
+	} else {
+	    new_array_num = arrays.length;
+	    arrays[new_array_num] = null;
+	}
+
+	// check whether the existing buffer is OK, or make a new one
+	if ((arrays[new_array_num] == null) || (arrays[new_array_num].length < registers[C])) {
+	    arrays[new_array_num]  = new Uint32Array(registers[C]);
+	} else {
+	    // zero the array - where is memset?
+	    for (var i=0; i<registers[C]; i++) 
+		arrays[new_array_num][i] = 0;
+	}
+
 	registers[B] = new_array_num;
     }
     
     function instr_free() {
-	arrays[registers[C]] = null;
+	// if the array is not too huge, keep it around
+	if (arrays[registers[C]].length > 128) 
+	    arrays[registers[C]] = null;
 	free_arrays.push(registers[C]);
     }
 
