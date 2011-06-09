@@ -42,6 +42,8 @@ function makeMachine() {
     var localVariable = 123;
     var registers = new Uint32Array(8);
     var arrays = new Array();  // An array of Uint32Arrays
+    var free_arrays = new Array();
+
     var pc;                    // program counter, aka finger
     var self;
     var cycle = 0;
@@ -91,16 +93,14 @@ function makeMachine() {
 
     function instr_alloc() {
 	var new_array_buf = new Uint32Array(registers[C]);
-	var new_array_num = arrays.indexOf(null);
-	if (new_array_num == -1) {
-	    new_array_num = arrays.length;
-	}
+	var new_array_num = free_arrays.length > 0 ? free_arrays.pop() : arrays.length;
 	arrays[new_array_num] = new_array_buf;
 	registers[B] = new_array_num;
     }
     
     function instr_free() {
 	arrays[registers[C]] = null;
+	free_arrays.push(registers[C]);
     }
 
     function instr_putchar() {
