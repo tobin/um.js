@@ -1,7 +1,17 @@
 <html>
 <body>
 
-<div id="hello_area">This text is replaced.</div>
+<div id="status_area"><font face="Helvetica">UNIVERSAL MACHINE</font></div>
+
+<div id="hello_area">
+<form name="image_selection">
+<p>Please choose a binary to load:</p>
+<input type="radio" name="image" value="codex.um"><tt>codex.um</tt></input><br/>
+<input type="radio" name="image" value="sandmark.umz" checked="true"><tt>sandmark.umz</tt></input><br/>
+<p/>
+<input type="button" value="LOAD" onClick="gogogadget(this)"/>
+</form>
+</div>
 
 <script type="text/javascript" src="um.js"></script>
 

@@ -1,14 +1,24 @@
 my_div = document.getElementById("hello_area");
-my_div.innerHTML = "Hello, World<br/>";
+
+var is_new_line = 1;
 
 function putchar(c) {
-    var s;
+    var s = "";
+
+    if (is_new_line) {
+	var clock = new Date()
+	s = "<tt><font color='blue'>["+clock.getHours() + ":" +
+            clock.getMinutes() + ":" + clock.getSeconds() + "] </font></tt> ";
+	is_new_line = 0;
+    }    
+
     switch (c) {
     case 10: 
-	s = "<br/>";
+	s += "<br/>";
+	is_new_line = 1;
 	break;
     default:
-	s = String.fromCharCode(c);
+	s += String.fromCharCode(c);
     }    
     my_div.innerHTML += s;
 }
@@ -43,7 +53,7 @@ function makeMachine() {
 	},
 
         execute: function() {
-	    for (var iterations=1000; iterations>0; iterations--) {
+	    for (var iterations=10000; iterations>0; iterations--) {
 
 		/* Fetch */
 		var instruction = byteswap(arrays[0][pc]);
@@ -144,21 +154,38 @@ function makeMachine() {
     }
 }
 
-machine = makeMachine();
+function load_image(filename) {
+    machine = makeMachine();
 
-xhr = new XMLHttpRequest(); 
-xhr.onreadystatechange = function() {
-//    writeln("onReadyStateChange()");
-    if (xhr.readyState == 4) {
-	buffer = xhr.response;
-	writeln("Read " + buffer.byteLength + " bytes");
-	var wordArray = new Uint32Array(buffer);
-	machine.load(wordArray);
-	machine.set_self(machine);
-	machine.execute();
+    my_div.innerHTML = "Loading <tt>" + filename + "</tt><br/>";
+
+    xhr = new XMLHttpRequest(); 
+    xhr.onreadystatechange = function() {
+	if (xhr.readyState == 4) {
+	    my_div.innerHTML = '';
+	    buffer = xhr.response;
+//	    writeln("Read " + buffer.byteLength + " bytes");
+	    var wordArray = new Uint32Array(buffer);
+	    machine.load(wordArray);
+	    machine.set_self(machine);
+	    machine.execute();
+	}
     }
+    
+    xhr.open("GET", filename, true);
+    xhr.responseType = "arraybuffer";
+    xhr.send(null);
 }
 
-xhr.open("GET", "sandmark.umz", true);
-xhr.responseType = "arraybuffer";
-xhr.send(null);
+// figure out what file the user selected and call load_image
+function gogogadget(thing) {
+    thing = document.image_selection.image;
+
+    for (var i=0; i<thing.length; i++) { 
+	if (thing[i].checked) {
+	    filename = thing[i].value;
+	    break;
+	}
+    }
+    load_image(filename);
+}
