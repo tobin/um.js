@@ -286,7 +286,8 @@ function load_image(filename) {
     xhr.onreadystatechange = function() {
 	if (xhr.readyState == 4) {
 	    my_div.innerHTML = '';
-	    buffer = xhr.response;
+	    var buffer = ("mozResponseArrayBuffer" in xhr) ?
+		xhr.mozResponseArrayBuffer : xhr.response;	    
 //	    writeln("Read " + buffer.byteLength + " bytes");
 	    var wordArray = new Uint32Array(buffer);
 	    machine.load(wordArray);
@@ -296,7 +297,8 @@ function load_image(filename) {
     }
     
     xhr.open("GET", filename, true);
-    xhr.responseType = "arraybuffer";
+    xhr.overrideMimeType('text/plain; charset=x-user-defined'); // firefox
+    xhr.responseType = "arraybuffer";  //chrome
     xhr.send(null);
 }
 
