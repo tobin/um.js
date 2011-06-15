@@ -49,13 +49,41 @@ function makeMachine() {
     var self;
     var cycle = 0;
 
-    function byteswap(x) {
+    // Reverse the order of the bytes in an unsigned 32 bit word
+    function byteswap32(x) {
+	/* This is a tad trickier than you would expect, since
+	   Javascript stores numbers as floating point but casts to
+	   SIGNED 32-bit integer to do bitwise operations.  In
+	   particular, the leftmost bit should be set by
+	   multiplication and not bit-shifting, to avoid triggering
+	   the sign bit. */
 	return (x >>> 24) +
 	    ((x & 0x00ff0000) >>>  8) +
 	    ((x & 0x0000ff00) <<  8) +
 	    ((x & 0x000000ff) * 0x01000000); // ugh!
     }
 
+    // Check whether the host is little-Endian
+    function isLittleEndian() {
+	/* Create two views of the same underlying bits in order
+	   to sense the underlying endianness. */
+	var buffer = new ArrayBuffer(4);
+	var words = new Uint32Array(buffer);
+	var bytes = new Uint8Array(buffer); 
+	
+	words[0] = 0xAABBCCDD;
+
+	/* Big endian will have    bytes == {0xAA, 0xBB, 0xCC, 0xDD},
+	   Little endian will have bytes == {0xDD, 0xCC, 0xBB, 0xAA} */
+	return (bytes[0] == 0xDD);
+    }
+
+    // Set up the endianness-conversion functions
+    var ntohl = isLittleEndian() ? 
+	byteswap32 : function(x) {return x;};
+    var htonl = ntohl;
+    
+    
     // superstitiously move these out of the main execution loop so that they 
     // are not being allocated on every cycle.
     var instruction = 0;
@@ -69,11 +97,11 @@ function makeMachine() {
     }
 
     function instr_arrayindex() {
-	registers[A] = byteswap(arrays[registers[B]][registers[C]]);
+	registers[A] = ntohl(arrays[registers[B]][registers[C]]);
     }
 
     function instr_arrayamend() {
-	arrays[registers[A]][registers[B]]=byteswap(registers[C]);
+	arrays[registers[A]][registers[B]]=htonl(registers[C]);
     }
 
     function instr_add() {
@@ -154,7 +182,7 @@ function makeMachine() {
 	    for (var iterations=10000; iterations>0; iterations--) {
 
 		/* Fetch */
-		instruction = byteswap(arrays[0][pc]);
+		instruction = ntohl(arrays[0][pc]);
 		
 		/* Decode the instruction */    
  		opcode = instruction >>> 28;
